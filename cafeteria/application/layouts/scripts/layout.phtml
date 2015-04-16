@@ -1,0 +1,21 @@
+<?php echo $this->doctype(); ?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head style="background-color: red;">
+        
+<?php
+echo $this->headTitle();
+echo $this->headMeta();
+echo $this->headLink()->appendStylesheet($this->baseUrl().'/css/style.css');
+echo $this->headScript();
+
+?>
+</head>
+<body>
+    
+    <?php echo $this->render('_header.phtml') ?>
+    
+    <?php echo $this->layout()->content; ?>
+    
+    <?php echo $this->render('_footer.phtml') ?>
+</body>
+</html>

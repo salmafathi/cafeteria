@@ -1,0 +1,35 @@
+<table border="1"> <th>Name</th><th>Pic</th><th>Price</th><th>Quntity</th><th>Cid</th><th>Action</th>
+<?php
+
+//print_r($this->users).
+
+for($i=0;$i< count($this->product) ;$i++){
+?>    
+     <tr> 
+<?php
+//    foreach ($this->users[$i]as $col => $va) {
+//        
+//       echo "<td ><br>".$va ."</td>";
+//       
+//    }
+    
+
+     
+    
+    echo "<td> ".$this->product[$i]['name']." </td>" ;
+    
+    //
+    echo "<td> <img width = '100' height='100' src = '".$this->baseUrl()."/images/".$this->product[$i]['pic']."'/>" ;
+    
+    echo "<td> ".$this->product[$i]['price']." </td>" ;
+    echo "<td> ".$this->product[$i]['quntity']." </td>" ;
+     echo"<td>";
+    echo "<a href='".$this->baseUrl()."/product/edit/id/".$this->product[$i]['id']."'>Edit</a>";
+    echo "<a href='".$this->baseUrl()."/product/delete/id/".$this->product[$i]['id']."'>Delete</a>";
+        echo"</td>";
+    echo "</tr>";
+}
+
+
+?>
+</table>

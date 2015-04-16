@@ -1,0 +1,19 @@
+<table border=2" >
+      
+<?php
+for($i=0 ;$i< count($this->allcategories);$i++)
+{ ?>
+ <tr> 
+     <?php
+    foreach ($this->allcategories[$i] as $key=>$value)
+    {   
+        echo "<td ><br>".$value."</td>";
+    }
+    echo "<td><a href='".$this->baseUrl()."/category/editcat/id/".$this->allcategories[$i]['id']."'>Edit</a></td>";
+    echo "<td><a href='".$this->baseUrl()."/category/deletecat/id/".$this->allcategories[$i]['id']."'>Delete</a></td>";
+}
+
+
+?>
+</tr>
+</table>

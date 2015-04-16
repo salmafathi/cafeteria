@@ -1,0 +1,199 @@
+<html>
+<head>
+<script src="http://localhost/category/public/jquery-1.11.2.js"></script>
+<script>
+    
+   
+$(function(){
+    var sum = 0;
+    var orders = [] ;
+    var productid = [] ;
+    var clickordernumber = 0 ; 
+    
+    //action click on a picture item to order
+    $(".pr").click(function(){
+       
+        var priceitem = this.getAttribute("prodpr");
+        var ordername = this.getAttribute("prodname");
+        var orderid = this.getAttribute("prodid");
+        
+        //check if this item ordered brfore or not..
+       if(jQuery.inArray(ordername,orders) === -1){
+            orders.push(ordername);
+            productid.push(orderid);
+            $("#ordersum").append("<label id='ordername' class='names'>"+ordername+"</label><input type='number' class='quant' id='"+ordername+"'/><label id='"+orderid+"' class='totalorderpr'>"+priceitem+"</label><br>");
+            var q = 1 ;
+             $('#'+ordername).val(q);
+                         
+        }
+        else{
+            var now = $('#'+ordername).val() ;            
+            now++;
+            $('#'+ordername).val(now);           
+            $('#'+orderid).text(now * priceitem);
+            
+        }
+        
+        
+        //calculate the total sum of prices
+        sum =0;
+            $(".totalorderpr").each(function(){
+                sum = sum + parseInt($(this).text()) ;
+            });
+            
+            $("#total").text("Total = "+ sum);        
+    }); 
+
+
+
+$("#userid").change(function() {
+  var ui = this.children(":selected").attr("id");
+});   
+  
+ // action click on "Make order" button ... 
+ 
+    $("#mk").click(function(){
+    
+                
+        var notes_total_room = [] ;
+        note = $("#note").val();
+        total = sum ;
+        room = $("#roomN").val();
+       // notes_total_room.push(note,total,room);
+
+         notes_total_room[0] = {"room_no":room,"notes":note,"total":total};
+         
+     
+        var ord_details = new Object();
+        ord_details = {'order_detail':notes_total_room} ;
+        
+        $.ajax({            
+            url:'http://localhost/category/public/userorder/addorderdetail',
+            type: 'POST',
+            cache: false,
+            async:false,
+            data: JSON.stringify(ord_details),
+            success: function () {
+                                alert("sucess");
+                            }
+        });
+ 
+        
+        
+        // get all quantities values in array
+        var quants = [] ;
+        $(".quant").each(function(){
+            quants.push($(this).val()); 
+        });
+        
+        
+        
+        //send orders and get their id's
+                
+        
+        
+        // get associtve array has orders and quantites
+        var o_and_q_arr = [] ;
+         var lastid = <?php echo json_encode($this->a); ?>;
+         
+        for(var i=0;i<quants.length;i++)
+        {  
+         // var ordersandquantity = new Object();
+         // ordersandquantity = {'pid':productid[i],'quntity':quants[i]};
+         o_and_q_arr[i] = {"order_id":lastid, "pid":productid[i],"quntity":quants[i]};
+         // o_and_q_arr[i]['pid']=productid[i];
+          //o_and_q_arr[i]['quntity']=quants[i];
+         // o_and_q_arr.push(ordersandquantity);    
+        }
+        
+        console.log(o_and_q_arr);
+        //make a json object to send data to php ...
+        var ord = new Object();
+        ord = {'orderss':o_and_q_arr} ; 
+        console.log(ord);
+        
+       // $finalobj = JSON.stringify(ord);
+       // var assarr = new Array();
+        //assarr['order'] = o_and_q_arr ;
+       // alert(assarr['order']);
+        
+        //send this associtive array to controller
+        $.ajax({            
+            url:'http://localhost/category/public/userorder/addorder',
+            type: 'POST',
+            cache: false,
+            async:false,
+            data: JSON.stringify(ord),
+            success: function () {
+                                alert("sucess");
+                            }
+        });
+        
+
+    });
+    
+    
+});
+</script>
+
+</head>
+
+<body>
+
+<select id = "usersid" name ="useridname">
+        <?php
+        for($i=0 ;$i<count($this->users);$i++){
+            echo "<option id = '{$this->users[$i]['id']}'>";
+            echo $this->users[$i]['name'];
+            echo "</option>";
+        }
+        ?>
+</select>
+
+
+<table border=2">
+    <tr>    
+<?php
+var_dump($this->a);
+
+
+for($i=0 ;$i< count($this->allproducts);$i++)
+{ 
+    echo'<td>';
+        echo "<a class='pr' prodid='{$this->allproducts[$i]['id']}'  prodpr='{$this->allproducts[$i]['price']}'  prodname='{$this->allproducts[$i]['name']}'><img id='order' src='../images/{$this->allproducts[$i]['pic']}'/></a>" ;
+        echo "<p>{$this->allproducts[$i]['name']}</p>" ;
+        echo "<h2> {$this->allproducts[$i]['price']} $ </h2>" ;        
+	//echo "<a href='".$this->baseUrl()."/userorder/listproducts/id/".$this->allproducts[$i]['id']."'>Order</a>" ;
+    echo '</td>';     
+}
+echo '</div>';
+?>
+</tr>
+</table>
+
+<p>Orders :</p>
+<div  id="ordersum">
+    
+
+</div>
+
+<div>
+    <label id='total'></label><br>
+</div>
+
+<div>
+    <label>Notes :</label>
+    <textarea placeholder="Any Notes" id="note"></textarea>
+</div>
+
+<div>
+    <label>Room Number :</label>
+    <input type="number" id="roomN"/>
+</div>
+
+<div>
+    <input type="submit" value="Make Order" id="mk" onclick="clickordernumber++"/>
+</div>
+
+ </body>   
+</html>

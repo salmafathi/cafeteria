@@ -1,0 +1,281 @@
+  <h2>Checks</h2>
+            
+            
+		<div id="main">
+			<input type="date" id="from"/>
+			<input type="date" id="to"/>
+                        <div>
+                    <select id="checkUser">
+                        <option>Choose a user</option>
+					<?php
+                                         for ($i = 0; $i < count($this->users); $i++) {
+                                             echo"<option value='".$this->users[$i]['id']."'>";
+                                               echo $this->users[$i]['name'];
+                                               echo '</option>' ;
+                        
+                                                }
+                                                
+                                        
+                                     ?>
+					
+				</select>
+
+                
+		</div>
+		<div id="users">
+			<table class="table table-bordered table-hover text-center" align="left" id="tableusers" bgcolor="#ccccb2">
+						
+			</table>
+		</div>
+                
+
+ <link rel="stylesheet" href="<?= $this->baseUrl() ?>/js/jquery-ui-1.11.4.custom/jquery-ui.css">
+ <link rel="stylesheet" href="<?= $this->baseUrl() ?>/js/jquery-ui-1.11.4.custom/jquery-ui.theme.css">
+ <link rel="stylesheet" type="text/css" href="<?= $this->baseUrl() ?>/css/bootstrap.min.css"/>
+ <script type="text/javascript" src="<?= $this->baseUrl() ?>/js/jquery.js" ></script>
+ <script type="text/javascript" src="<?= $this->baseUrl() ?>/js/bootstrap.min.js"></script>
+ <script src="<?= $this->baseUrl() ?>/js/jquery-ui-1.11.4.custom/jquery-ui.js"></script>
+ 
+ 
+    <script >
+	$(function(){
+           
+            function dates(startdate,enddate)
+		{
+			this.startdate=startdate;
+			this.enddate=enddate;	
+		}
+            var today = new Date();
+            var dd = today.getDate();
+            var mm = today.getMonth() + 1; //January is 0!
+            var yy = today.getFullYear();
+            if (dd < 10) {
+                dd = '0' + dd
+            }
+            if (mm < 10) {
+                mm = '0' + mm
+            }
+			
+            var today_data = yy + '-' + mm + '-' +dd ;
+            $('#from').val(today_data);
+            $('#from').datepicker({ dateFormat: 'yy-mm-dd 00:00:00',beforeShowDay: function(dt)
+                    
+                    {
+                        
+                        return [dt.getDay() == 5 || dt.getDay() == 6 ? false : true];
+                        
+                },
+                maxDate: '0d' });
+          
+            $('#to').val(today_data);
+            $('#to').datepicker({ dateFormat: 'yy-mm-dd 00:00:00',beforeShowDay: function(dt)
+                    
+                    {
+                        
+                        return [dt.getDay() == 5 || dt.getDay() == 6 ? false : true];
+                        
+                },
+                maxDate: '0d' });
+            
+            $("#to").change(function(){
+                var from=$("#from").val();
+                var to=$("#to").val();
+                var checkdates=new dates(from,to);
+                var check=JSON.stringify(checkdates);
+
+                    $.ajax({
+                    url: '<?= $this->baseUrl() ?>/checks/checksform',
+                    type:"POST",
+                    data:check,
+                    async:false,
+                    success: function ( firstdata ) {
+                        var $res=$.parseJSON(firstdata);
+                        if($res.length!=0){
+                
+                       $("#tableusers").html("<tr ><td>Name</td><td>Total amount</td></tr>");
+                       for(i = 0; i < $res.length; ++i) {
+                           $("#tableusers").append("<tr data-toggle='collapse' class='clickedtr' data-target='#"+$res[i]['uid']+"'  class='accordion-toggle' ><td><label>+</label>"+$res[i]['name']+"</td><td>"+$res[i]['total']+"</td></tr><tr><td class='hiddenRow' colspan='2' ><table id='"+$res[i]['uid']+"' class='accordian-body collapse'></table></td></tr>");
+                        }
+                        
+                          
+                    }
+                        else
+                        {
+                            $("#tableusers").html("");
+                            alert("ther is no results");
+                        }
+                    },
+                    error:function(){
+                        alert( "error" );
+                    }        
+                     });
+                     $(".clickedtr").click(function(){
+                            var $userid=$(this).attr('data-target').valueOf().split("#")[1];
+                            checkdates['usercheckid']=$userid;
+                            check=JSON.stringify(checkdates);
+                            $.ajax({
+                            url: '<?= $this->baseUrl() ?>/checks/checksdates',
+                            type:"POST",
+                            data:check,
+                            async:false,
+                            success: function (seconddata ) {
+                                $secres=$.parseJSON(seconddata);
+                                if($secres.length!=0){
+                                    $("table[id='"+$uid+"']").html("<tr><th>Orderdate</th><th>Amount</th></tr>");
+                                    for(i = 0; i < $secres.length; ++i) {
+                                        $("table[id='"+$uid+"']").append("<tr data-toggle='collapse' class='clickedproducttr'  data-target='#"+$secres[i]['id']+"p' class='accordion-toggle'><td>"+$secres[i]['date']+"</td><td> "+$secres[i]['total']+"</td></tr><tr><td class='hiddenRow' colspan='2' ><table id='"+$secres[i]['id']+"p' class='accordian-body collapse'></table></td></tr>");
+                                    }
+                                }
+                                else{
+                                    $("table[id='"+$uid+"']").html("<tr><th>There is no results</th></tr>");
+                                }
+                            $(".clickedproducttr").click(function(){
+                                   
+                            var orderid=$(this).attr('data-target').valueOf().split("#")[1].split("p")[0];
+                            checkdates['ordercheckid']=orderid;
+                            check=JSON.stringify(checkdates);
+                            $.ajax({
+                            url: '<?= $this->baseUrl() ?>/checks/checksproduct',
+                            type:"POST",
+                            data:check,
+                            async:false,
+                            success: function (thirddata) {
+                                $thirdres=$.parseJSON(thirddata);
+                                if($thirdres.length!=0){
+                               $("table[id='"+orderid+"p']").html("<tr colspan='4'><td>");
+                                for(i = 0; i < $thirdres.length; ++i) {
+                                    //$("table[id='"+orderid+"p']").append("<td>");
+                                    $("table[id='"+orderid+"p']").append('<label>'+$thirdres[i]['name']+'</label><label>'+$thirdres[i]['price']+'EGP</label><img id ="image" width="50" height="50" src="<?php echo $this->baseUrl()?>/images/'+$thirdres[i]['pic']+'"/><label>'+$thirdres[i]['quntity']+'</label><label>  </label>');
+                                   // $("table[id='"+orderid+"p']").append("</td>");
+                                }
+                                $("table[id='"+orderid+"p']").append("</td></tr>");
+                                }
+                                else{
+                                    $("table[id='"+orderid+"p']").html("<tr><td>There is no results</td></tr>");
+                                }
+                            },
+                            error:function(){
+                                
+                                alert( "third error" );
+                            }
+                            });
+                           
+                        });
+                
+                            },
+                            error:function(){
+                                
+                                
+                                alert( "second error" );
+                            }
+                            });
+                            
+                        });
+
+                
+                
+               
+                        });
+                        //select user on change
+                        $("#checkUser").change(function () {
+                        var from=$("#from").val();
+                        var to=$("#to").val();
+                        var $userid=$(this).val();
+                       
+                        var checkdates=new dates(from,to);
+                        checkdates['usercheckid']=$userid;
+                        var check=JSON.stringify(checkdates);
+                        $.ajax({
+                        url: '<?= $this->baseUrl() ?>/checks/checksuserform',
+                        type:"POST",
+                        data:check,
+                        async:false,
+                        success: function ( firstdata ) {
+                           var  $res=$.parseJSON(firstdata);
+                            if($res.length!=0){
+
+                           $("#tableusers").html("<tr ><td>Name</td><td>Total amount</td></tr>");
+                           for(i = 0; i < $res.length; ++i) {
+                               $("#tableusers").append("<tr data-toggle='collapse' class='clickedtrsel' data-target='#"+$userid+"'  class='accordion-toggle' ><td><label>+</label>"+$res[i]['name']+"</td><td>"+$res[i]['total']+"</td></tr><tr><td class='hiddenRow' colspan='2' ><table id='"+$userid+"' class='accordian-body collapse'></table></td></tr>");
+                            }
+
+
+                        }
+                            else
+                            {
+                                $("#tableusers").html("");
+                                alert("ther is no results");
+                            }
+                        },
+                        error:function(){
+                            alert( "error" );
+                        }        
+                         });
+                        $(".clickedtrsel").click(function(){
+                           
+                            $.ajax({
+                            url: '<?= $this->baseUrl() ?>/checks/checksdates',
+                            type:"POST",
+                            data:check,
+                            async:false,
+                            success: function (seconddata ) {
+                                
+                                $secres=$.parseJSON(seconddata);
+                                if($secres.length!=0){
+                                    $("table[id='"+$userid+"']").html("<tr><th>Orderdate</th><th>Amount</th></tr>");
+                                    for(i = 0; i < $secres.length; ++i) {
+                                        $("table[id='"+$userid+"']").append("<tr data-toggle='collapse' class='clickedproducttrsel'  data-target='#"+$secres[i]['id']+"p' class='accordion-toggle'><td>"+$secres[i]['date']+"</td><td> "+$secres[i]['total']+"</td></tr><tr><td class='hiddenRow' colspan='2' ><table id='"+$secres[i]['id']+"p' class='accordian-body collapse'></table></td></tr>");
+                                    }
+                                }
+                                else{
+                                     $("table[id='"+$userid+"']").html("<tr><th>There is no results</th></tr>");
+                                }
+                            $(".clickedproducttrsel").click(function(){       
+                            var orderid=$(this).attr('data-target').valueOf().split("#")[1].split("p")[0];
+                            checkdates['ordercheckid']=orderid;
+                            check=JSON.stringify(checkdates);
+                            $.ajax({
+                            url: '<?= $this->baseUrl() ?>/checks/checksproduct',
+                            type:"POST",
+                            data:check,
+                            async:false,
+                            success: function (thirddata) {
+                                $thirdres=$.parseJSON(thirddata);
+                                if($thirdres.length!=0){
+                                $("table[id='"+orderid+"p']").html("<tr colspan='4'><td>");
+                                for(i = 0; i < $thirdres.length; ++i) {
+                                   // $("table[id='"+orderid+"p']").append("<td>");
+                                    $("table[id='"+orderid+"p']").append('<label>'+$thirdres[i]['name']+'</label><label>'+$thirdres[i]['price']+'EGP</label><img id ="image" width="50" height="50" src="<?php echo $this->baseUrl()?>/images/'+$thirdres[i]['pic']+'"/><label>'+$thirdres[i]['quntity']+'</label><label>   </label>');
+                                    //$("table[id='"+orderid+"p']").append("</td>");
+                                }
+                                $("table[id='"+orderid+"p']").append("</td></tr>");
+                                }
+                                else{
+                                    $("table[id='"+orderid+"p']").html("<tr><td>There is no results</td></tr>");
+                                }
+                            },
+                            error:function(){
+                                
+                                alert( "third error" );
+                                }
+                            });
+                            
+                        });
+                
+                            },
+                            error:function(){
+                                
+                                
+                                alert( "second error" );
+                            }
+                            });
+                            
+                        }); 
+                        
+
+                        });
+
+            
+        });
+        </script>
+ 
